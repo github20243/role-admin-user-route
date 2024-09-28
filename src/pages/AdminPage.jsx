@@ -22,41 +22,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate } from "react-router-dom"; // Добавляем navigate
 
-const StyledContainer = styled(Container)(({ theme }) => ({
-	padding: theme.spacing(4),
-	background: "linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)",
-	borderRadius: theme.shape.borderRadius,
-	boxShadow: "0 3px 5px 2px rgba(255, 105, 135, .3)",
-}));
-
-const StyledPaper = styled(Paper)(({ theme }) => ({
-	background: "rgba(255, 255, 255, 0.8)",
-	backdropFilter: "blur(10px)",
-	borderRadius: theme.shape.borderRadius,
-	overflow: "hidden",
-}));
-
-const StyledTableHead = styled(TableHead)(({ theme }) => ({
-	background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-	"& th": {
-		color: theme.palette.common.white,
-		fontWeight: "bold",
-	},
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-	"&:nth-of-type(odd)": {
-		backgroundColor: theme.palette.action.hover,
-	},
-	"&:hover": {
-		backgroundColor: theme.palette.action.selected,
-		transition: "background-color 0.3s ease",
-	},
-}));
-
 const AdminPage = () => {
 	const dispatch = useDispatch();
-	const navigate = useNavigate(); // Инициализация navigate
+	const navigate = useNavigate();
 	const [role, setRole] = useState(localStorage.getItem("userRole"));
 	const { users, loading, error } = useSelector((state) => state.admin);
 
@@ -68,9 +36,9 @@ const AdminPage = () => {
 		const storedRole = localStorage.getItem("userRole");
 		setRole(storedRole);
 		if (storedRole !== "admin") {
-			navigate("/"); // Перенаправляем, если роль не админ
+			navigate("/");
 		}
-	}, [navigate, role]); // Добавляем navigate и role в зависимости
+	}, [navigate, role]);
 
 	const handleDelete = (userId) => {
 		dispatch(deleteUser(userId));
@@ -146,3 +114,35 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
+
+const StyledContainer = styled(Container)(({ theme }) => ({
+	padding: theme.spacing(4),
+	background: "linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)",
+	borderRadius: theme.shape.borderRadius,
+	boxShadow: "0 3px 5px 2px rgba(255, 105, 135, .3)",
+}));
+
+const StyledPaper = styled(Paper)(({ theme }) => ({
+	background: "rgba(255, 255, 255, 0.8)",
+	backdropFilter: "blur(10px)",
+	borderRadius: theme.shape.borderRadius,
+	overflow: "hidden",
+}));
+
+const StyledTableHead = styled(TableHead)(({ theme }) => ({
+	background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+	"& th": {
+		color: theme.palette.common.white,
+		fontWeight: "bold",
+	},
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+	"&:nth-of-type(odd)": {
+		backgroundColor: theme.palette.action.hover,
+	},
+	"&:hover": {
+		backgroundColor: theme.palette.action.selected,
+		transition: "background-color 0.3s ease",
+	},
+}));
