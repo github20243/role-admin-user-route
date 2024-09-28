@@ -30,13 +30,11 @@ const SignUp = () => {
       const result = await dispatch(registerUser(data)).unwrap();
       console.log('Успешная регистрация:', result);
       
-      // Сохраняем данные в localStorage
       localStorage.setItem("userInfo", JSON.stringify(result));
       localStorage.setItem("token", result.token);
       localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userRole", result.role || "user"); // Здесь устанавливаем роль
+      localStorage.setItem("userRole", result.role || "user");
       
-      // Перенаправляем на страницу пользователя
       navigate("/user", { replace: true });
     } catch (error) {
       console.error("Ошибка регистрации:", error);
