@@ -26,7 +26,7 @@ const adminSlice = createSlice({
         state.error = payload || "Ошибка получения пользователей";
       })
       .addCase(deleteUser.fulfilled, (state, { payload }) => {
-        state.users = state.users.filter(user => user.id !== payload); // Удаляем пользователя
+        state.users = state.users.filter(user => user.id !== payload);
       });
   },
 });

@@ -111,7 +111,6 @@ export const fetchUsers = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Проверка на наличие пользователей
       if (!data || data.length === 0) {
         toast.error("Нет доступных пользователей");
         return rejectWithValue("Нет доступных пользователей");
@@ -144,7 +143,6 @@ export const deleteUser = createAsyncThunk(
   }
 );
 
-// Добавим функцию для обновления токена в заголовках запросов
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
