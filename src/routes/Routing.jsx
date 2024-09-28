@@ -1,11 +1,11 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SignIn from '../pages/SignIn';
 import SignUp from '../pages/SignUp';
 import User from '../pages/User';
-import ProtectedRouter from './lib/ProtectedRouter';
-import AdminRoutes from './lib/AdminRoutes';
+import AdminRoutes from '../routes/lib/AdminRoutes';
+import ProtectedRouter from '../routes/lib/ProtectedRouter';
+
 const Routing = () => {
   const authState = useSelector((state) => state.auth || {});
   const { isAuthenticated, role } = authState;
@@ -22,6 +22,18 @@ const Routing = () => {
         
         <Route
           path="/"
+          element={
+            <ProtectedRouter
+              Component={User}
+              fallBackPath="/signup"
+              isAuth={isAuthenticated}
+            />
+          }
+        />
+        
+        {/* Добавляем новый маршрут для /user */}
+        <Route
+          path="/user"
           element={
             <ProtectedRouter
               Component={User}

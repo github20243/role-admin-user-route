@@ -3,38 +3,37 @@ import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../api/api';
-import { Button, TextField, Typography, Box, CircularProgress } from "@mui/material";
+import { Button, TextField, Typography, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import Spinner from "../components/Spinner";
 
 const SignIn = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { role, error } = useSelector((state) => state.auth || {});
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const onSubmit = (data) => {
-    setLoading(true);
-    dispatch(loginUser(data))
-      .unwrap()
-      .then(() => {
-        setLoading(false);
-        if (role === 'admin') {
-          navigate('/admin'); 
-        } else {
-          navigate('/user');
-        }
-      })
-      .catch((err) => {
-        console.error("Ошибка входа:", err);
-        setLoading(false);
-      });
-  }
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    try {
+      await dispatch(loginUser(data)).unwrap();
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/user');
+      }
+    } catch (err) {
+      console.error("Ошибка входа:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <BackgroundBox>
       <StyledBox>
-        <Typography component="h1" variant="h4" sx={{ mb: 4, fontWeight: "bold", color: "#333" }}>
+        <Typography component="h1" variant="h4" sx={{ mb: 4, fontWeight: "bold", color: "#333", fontFamily: "Sofadi One, system-ui" }}>
           Вход в систему
         </Typography>
         <Box component="form" onSubmit={handleSubmit(onSubmit)}>
@@ -51,6 +50,7 @@ const SignIn = () => {
             })}
             error={!!errors.email}
             helperText={errors.email?.message}
+            inputProps={{ autoComplete: "email" }}
           />
           <TextField
             fullWidth
@@ -60,6 +60,7 @@ const SignIn = () => {
             {...register("password", { required: "Пароль обязателен" })}
             error={!!errors.password}
             helperText={errors.password?.message}
+            inputProps={{ autoComplete: "current-password" }}
           />
           {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
           <Button
@@ -67,9 +68,17 @@ const SignIn = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 4, mb: 2, py: 1.5, fontSize: "1.1rem", fontWeight: "bold" }}
-            disabled={loading} 
+            disabled={isLoading}
           >
-            {loading ? <CircularProgress size={24} /> : "Войти"}
+            {isLoading ? <Spinner /> : "Войти"}
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={() => navigate("/signup")}
+            sx={{ mt: 1, fontSize: "1rem" }}
+          >
+            Нет аккаунта? Зарегистрироваться
           </Button>
         </Box>
       </StyledBox>
@@ -79,7 +88,7 @@ const SignIn = () => {
 
 export default SignIn;
 
-const BackgroundBox = styled(Box)( {
+const BackgroundBox = styled(Box)({
   minHeight: "100vh",
   display: "flex",
   justifyContent: "center",

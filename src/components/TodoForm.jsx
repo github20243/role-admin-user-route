@@ -29,7 +29,7 @@ const TodoForm = () => {
         onChange={(e) => setText(e.target.value)}
       />
       <TextField
-        label="New Text"
+        label="New Url"
         variant="outlined"
         type="url"
         value={url}

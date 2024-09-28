@@ -19,31 +19,19 @@ const SignUp = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [submitData, setSubmitData] = useState(null); 
 
-  const onSubmit = (data) => {
-    setSubmitData(data); 
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    try {
+      await dispatch(registerUser(data));
+      reset();
+      navigate("/user");
+    } catch (error) {
+      console.error("Ошибка регистрации:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  useEffect(() => {
-    const registerUserAsync = async () => {
-      if (submitData) { 
-        setIsLoading(true);
-        try {
-          await dispatch(registerUser(submitData));
-          reset();
-          navigate("/user");
-        } catch (error) {
-          console.error("Ошибка регистрации:", error);
-        } finally {
-          setIsLoading(false);
-          setSubmitData(null); 
-        }
-      }
-    };
-
-    registerUserAsync();
-  }, [submitData, dispatch, navigate, reset]); 
 
   return (
     <BackgroundBox>
@@ -59,6 +47,7 @@ const SignUp = () => {
             {...register("email", { required: "Электронная почта обязательна" })}
             error={!!errors.email}
             helperText={errors.email?.message}
+            inputProps={{ autoComplete: "email" }}
           />
           <TextField
             fullWidth
@@ -68,6 +57,7 @@ const SignUp = () => {
             {...register("password", { required: "Пароль обязателен" })}
             error={!!errors.password}
             helperText={errors.password?.message}
+            inputProps={{ autoComplete: "new-password" }}
           />
           <TextField
             fullWidth
@@ -80,6 +70,7 @@ const SignUp = () => {
             })}
             error={!!errors.confirmPassword}
             helperText={errors.confirmPassword?.message}
+            inputProps={{ autoComplete: "new-password" }}
           />
           <Button
             type="submit"
@@ -89,6 +80,14 @@ const SignUp = () => {
             disabled={isLoading}
           >
             {isLoading ? <Spinner /> : "Зарегистрироваться"}
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={() => navigate("/signin")}
+            sx={{ mt: 1, fontSize: "1rem" }}
+          >
+            Уже есть аккаунт? Войти
           </Button>
         </Box>
       </StyledBox>
