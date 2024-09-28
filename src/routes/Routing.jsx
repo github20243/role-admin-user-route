@@ -1,54 +1,70 @@
-import { useSelector } from 'react-redux';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import SignIn from '../pages/SignIn';
-import SignUp from '../pages/SignUp';
-import User from '../pages/User';
-import AdminRoutes from '../routes/lib/AdminRoutes';
-import ProtectedRouter from '../routes/lib/ProtectedRouter';
+import { useSelector } from "react-redux";
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route,
+	Navigate,
+} from "react-router-dom";
+import SignIn from "../pages/SignIn";
+import SignUp from "../pages/SignUp";
+import User from "../pages/User";
+import AdminRoute from "../routes/lib/AdminRoute"; // Подключаем маршруты для админа
+import ProtectedRouter from "../routes/lib/ProtectedRouter";
 
 const Routing = () => {
-  const authState = useSelector((state) => state.auth || {});
-  const { isAuthenticated, role } = authState;
+	const { isAuthenticated, role } = useSelector((state) => state.auth || {});
 
-  return (
-    <Router>
-      <Routes>
-        <Route path="/signin" element={<SignIn />} />
+	return (
+		<Router>
+			<Routes>
+				<Route path="/signin" element={<SignIn />} />
 
-        <Route
-          path="/signup"
-          element={isAuthenticated ? <Navigate to="/user" /> : <SignUp />}
-        />
+				<Route
+					path="/signup"
+					element={
+						isAuthenticated ? (
+							<Navigate to={role === "admin" ? "/admin" : "/user"} />
+						) : (
+							<SignUp />
+						)
+					}
+				/>
 
-        <Route
-          path="/"
-          element={
-            <ProtectedRouter
-              Component={User}
-              fallBackPath="/signup"
-              isAuth={isAuthenticated}
-            />
-          }
-        />
+				<Route
+					path="/"
+					element={
+						<ProtectedRouter
+							Component={User}
+							fallBackPath="/signup"
+							isAuth={isAuthenticated}
+						/>
+					}
+				/>
 
-        {/* Добавляем новый маршрут для /user */}
-        <Route
-          path="/user"
-          element={
-            <ProtectedRouter
-              Component={User}
-              fallBackPath="/signup"
-              isAuth={isAuthenticated}
-            />
-          }
-        />
+				<Route
+					path="/user"
+					element={
+						<ProtectedRouter
+							Component={User}
+							fallBackPath="/signup"
+							isAuth={isAuthenticated}
+						/>
+					}
+				/>
 
-        {role === 'admin' && (
-          <Route path="/admin/*" element={<AdminRoutes />} />
-        )}
-      </Routes>
-    </Router>
-  );
+				<Route
+					path="/admin"
+					element={
+						<ProtectedRouter
+							Component={AdminRoute}
+							fallBackPath="/signup"
+							isAuth={isAuthenticated && role === "admin"}
+						/>
+					}
+				/>
+			</Routes>
+		</Router>
+	);
 };
 
 export default Routing;

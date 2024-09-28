@@ -26,12 +26,23 @@ const SignUp = () => {
 
   const onSubmit = async (data) => {
     setIsLoading(true);
-    const response = await dispatch(registerUser(data));
-    if (registerUser.fulfilled.match(response)) {
+    try {
+      const result = await dispatch(registerUser(data)).unwrap();
+      console.log('Успешная регистрация:', result);
+      
+      // Сохраняем данные в localStorage
+      localStorage.setItem("userInfo", JSON.stringify(result));
+      localStorage.setItem("token", result.token);
       localStorage.setItem("isAuthenticated", "true");
-      navigate("/");
+      localStorage.setItem("userRole", result.role || "user"); // Здесь устанавливаем роль
+      
+      // Перенаправляем на страницу пользователя
+      navigate("/user", { replace: true });
+    } catch (error) {
+      console.error("Ошибка регистрации:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false); 
   };
 
   return (

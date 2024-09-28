@@ -13,9 +13,28 @@ const api = axios.create({
   },
 });
 
-const determineRole = (email) => {
-  const adminEmail = import.meta.env.REACT_APP_ADMIN_EMAIL; 
-  return email === adminEmail ? "admin" : "user";
+const determineRole = (email, password) => {
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL; 
+  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD; 
+
+  if (email === adminEmail && password === adminPassword) {
+    return "admin";
+  }
+  return "user";
+};
+
+const setUserData = (userInfo) => {
+  localStorage.setItem("userInfo", JSON.stringify(userInfo));
+  localStorage.setItem("token", userInfo.token);
+  localStorage.setItem("isAuthenticated", "true");
+  localStorage.setItem("userRole", userInfo.role);
+};
+
+const clearUserData = () => {
+  localStorage.removeItem("userInfo");
+  localStorage.removeItem("token");
+  localStorage.removeItem("isAuthenticated");
+  localStorage.removeItem("userRole");
 };
 
 export const registerUser = createAsyncThunk(
@@ -23,12 +42,9 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const { data } = await api.post(REGISTER_URL, userData);
-      const role = determineRole(userData.email);
+      const role = determineRole(userData.email, userData.password);
       const userInfo = { ...data, role };
-      localStorage.setItem("userInfo", JSON.stringify(userInfo));
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("userRole", role);
+      setUserData(userInfo);
       toast.success("Регистрация прошла успешно!");
       return userInfo;
     } catch (error) {
@@ -47,14 +63,17 @@ export const loginUser = createAsyncThunk(
 
       if (response.status === 200 || response.status === 201) {
         const { email, token } = response.data;
-        const role = determineRole(email);
+        const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+        const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+        
+        let role = "user";
+        if (email === adminEmail && loginData.password === adminPassword) {
+          role = "admin";
+        }
+
         const userInfo = { email, token, role };
 
-        localStorage.setItem("userInfo", JSON.stringify(userInfo));
-        localStorage.setItem("token", token);
-        localStorage.setItem("isAuthenticated", "true");
-        localStorage.setItem("userRole", role);
-
+        setUserData(userInfo);
         toast.success("Вход выполнен успешно!");
         return userInfo;
       } else {
@@ -73,10 +92,7 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await api.post(LOGOUT_URL);
-      localStorage.removeItem("userInfo");
-      localStorage.removeItem("token");
-      localStorage.removeItem("isAuthenticated");
-      localStorage.removeItem("userRole");
+      clearUserData();
       toast.success("Вы успешно вышли из системы");
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Не удалось выйти";
@@ -86,13 +102,22 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
-
 export const fetchUsers = createAsyncThunk(
   "admin/fetchUsers",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get(USER_URL);
-      return data; // Возвращаем массив пользователей
+      const token = localStorage.getItem("token");
+      const { data } = await api.get(USER_URL, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Проверка на наличие пользователей
+      if (!data || data.length === 0) {
+        toast.error("Нет доступных пользователей");
+        return rejectWithValue("Нет доступных пользователей");
+      }
+
+      return data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Не удалось получить пользователей";
       toast.error(errorMessage);
@@ -105,13 +130,28 @@ export const deleteUser = createAsyncThunk(
   "admin/deleteUser",
   async (userId, { rejectWithValue }) => {
     try {
-      await api.delete(`${USER_URL}/${userId}`); // Предполагается, что DELETE работает по этому URL
+      const token = localStorage.getItem("token");
+      await api.delete(`${USER_URL}/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       toast.success("Пользователь успешно удален!");
-      return userId; // Возвращаем ID удаленного пользователя
+      return userId;
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Не удалось удалить пользователя";
       toast.error(errorMessage);
       return rejectWithValue(errorMessage);
     }
   }
+);
+
+// Добавим функцию для обновления токена в заголовках запросов
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
 );

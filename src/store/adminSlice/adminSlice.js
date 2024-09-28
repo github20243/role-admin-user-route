@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchUsers, deleteUser } from "../../api/apiAdmin"; // Импортируйте необходимые функции
+import { fetchUsers, deleteUser } from "../../api/api"; // Импортируйте необходимые функции
 
 const initialState = {
   users: [],
