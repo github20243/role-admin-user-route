@@ -24,8 +24,12 @@ export const registerUser = createAsyncThunk(
     try {
       const { data } = await api.post(REGISTER_URL, userData);
       const role = determineRole(userData.email);
+      const userInfo = { ...data, role };
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("isAuthenticated", "true");
       toast.success("Регистрация прошла успешно!");
-      return { ...data, role };
+      return userInfo;
     } catch (error) {
       const errorMessage = error.response?.data?.message || "Не удалось зарегистрироваться";
       toast.error(errorMessage);
@@ -45,11 +49,12 @@ export const loginUser = createAsyncThunk(
       // Проверка для администратора
       if (email === adminEmail) {
         if (password === adminPassword) {
-          const role = 'admin';
-          localStorage.setItem("token", "admin_token");
+          const userInfo = { email, role: 'admin' };
+          localStorage.setItem("userInfo", JSON.stringify(userInfo));
+          localStorage.setItem("token", "admin_token"); // Используйте реальный токен в продакшене
           localStorage.setItem("isAuthenticated", "true");
           toast.success("Вход администратора выполнен успешно!");
-          return { email, role };
+          return userInfo;
         } else {
           throw new Error("Неверный пароль для администратора");
         }
@@ -60,10 +65,12 @@ export const loginUser = createAsyncThunk(
       const response = await api.post(LOGIN_URL, loginData);
       console.log('Ответ сервера:', response.data);
       const role = determineRole(email);
+      const userInfo = { ...response.data, role };
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("isAuthenticated", "true");
       toast.success("Вход выполнен успешно!");
-      return { ...response.data, role };
+      return userInfo;
     } catch (error) {
       console.error('Ошибка при входе:', error);
       const errorMessage = error.response?.data?.message || error.message || "Не удалось войти";
@@ -78,6 +85,7 @@ export const logoutUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await api.post(LOGOUT_URL);
+      localStorage.removeItem("userInfo");
       localStorage.removeItem("token");
       localStorage.removeItem("isAuthenticated");
       toast.success("Вы успешно вышли из системы");
