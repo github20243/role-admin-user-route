@@ -24,7 +24,6 @@ const SignIn = () => {
 			const resultAction = await dispatch(loginUser(data)).unwrap();
 			console.log("Успешный вход:", resultAction);
 
-			// Сохраняем данные в localStorage
 			localStorage.setItem("isAuthenticated", "true");
 			localStorage.setItem("userRole", resultAction.role);
 			localStorage.setItem("userInfo", JSON.stringify(resultAction));
@@ -37,7 +36,6 @@ const SignIn = () => {
 			}
 		} catch (err) {
 			console.error("Ошибка входа:", err);
-			// Очищаем localStorage в случае ошибки
 			localStorage.removeItem("isAuthenticated");
 			localStorage.removeItem("userRole");
 			localStorage.removeItem("userInfo");
