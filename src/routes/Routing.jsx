@@ -10,6 +10,7 @@ import SignUp from "../pages/SignUp";
 import User from "../pages/User";
 import AdminRoute from "../routes/lib/AdminRoute"; 
 import ProtectedRouter from "../routes/lib/ProtectedRouter";
+import NotFound from "../pages/NotFound";
 
 const Routing = () => {
 	const { isAuthenticated, role } = useSelector((state) => state.auth || {});
@@ -62,6 +63,7 @@ const Routing = () => {
 						/>
 					}
 				/>
+				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</Router>
 	);
