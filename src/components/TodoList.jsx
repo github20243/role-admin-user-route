@@ -1,5 +1,5 @@
 import { Box, Button, styled, TextField, Typography } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteRequest, patchRequest } from "../store/request/request";
 import Spinner from "./Spinner";
@@ -33,6 +33,16 @@ const TodoList = () => {
       setEditUrl("");
     }
   };
+
+  useEffect(() => {
+    const savedTodos = JSON.parse(localStorage.getItem("todos"));
+    if (savedTodos) {
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
 
   return (
     <>

@@ -14,12 +14,12 @@ const Routing = () => {
     <Router>
       <Routes>
         <Route path="/signin" element={<SignIn />} />
-        
+
         <Route
           path="/signup"
           element={isAuthenticated ? <Navigate to="/user" /> : <SignUp />}
         />
-        
+
         <Route
           path="/"
           element={
@@ -30,7 +30,7 @@ const Routing = () => {
             />
           }
         />
-        
+
         {/* Добавляем новый маршрут для /user */}
         <Route
           path="/user"
@@ -42,8 +42,10 @@ const Routing = () => {
             />
           }
         />
-        
-        {role === 'admin' && <Route path="/admin/*" element={<AdminRoutes />} />}
+
+        {role === 'admin' && (
+          <Route path="/admin/*" element={<AdminRoutes />} />
+        )}
       </Routes>
     </Router>
   );

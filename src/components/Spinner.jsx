@@ -39,31 +39,28 @@ const SpinnerOverlay = styled("div")({
 });
 
 const SpinnerContainer = styled("div")({
-  width: "250px",
-  height: "250px",
-  display: "inline-block",
+  width: "100vw",
+  height: "100vh",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
   overflow: "hidden",
 });
 
 const SpinnerInner = styled("div")({
-  width: "100%",
-  height: "100%",
+  width: "220px",
+  height: "220px",
   position: "relative",
-  transform: "translateZ(0) scale(1)",
-  backfaceVisibility: "hidden",
-  transformOrigin: "0 0",
 });
 
 const SpinnerCircle = styled("div")({
   position: "absolute",
   animation: `${spin} 1.61s linear infinite`,
-  width: "220px",
-  height: "220px",
-  top: "15px",
-  left: "15px",
+  width: "100%",
+  height: "100%",
   borderRadius: "50%",
   boxShadow: "0 4px 0 0 #2fc024",
-  transformOrigin: "110px 112px",
+  transformOrigin: "50% 50%",
   boxSizing: "content-box",
 });
 

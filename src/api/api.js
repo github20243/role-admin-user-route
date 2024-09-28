@@ -5,8 +5,8 @@ import { toast } from "react-toastify";
 const REGISTER_URL = import.meta.env.VITE_API_REGISTER_URL;
 const LOGIN_URL = import.meta.env.VITE_API_LOGIN_URL;
 const LOGOUT_URL = import.meta.env.VITE_API_LOGOUT_URL;
+const USER_URL = import.meta.env.VITE_API_USER_URL;
 
-// Создаем экземпляр axios
 const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
@@ -14,7 +14,7 @@ const api = axios.create({
 });
 
 const determineRole = (email) => {
-  const adminEmail = import.meta.env.REACT_APP_ADMIN_EMAIL;
+  const adminEmail = import.meta.env.REACT_APP_ADMIN_EMAIL; 
   return email === adminEmail ? "admin" : "user";
 };
 
@@ -28,6 +28,7 @@ export const registerUser = createAsyncThunk(
       localStorage.setItem("userInfo", JSON.stringify(userInfo));
       localStorage.setItem("token", data.token);
       localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("userRole", role);
       toast.success("Регистрация прошла успешно!");
       return userInfo;
     } catch (error) {
@@ -42,38 +43,25 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (loginData, { rejectWithValue }) => {
     try {
-      const { email, password } = loginData;
-      const adminEmail = import.meta.env.REACT_APP_ADMIN_EMAIL;
-      const adminPassword = import.meta.env.REACT_APP_ADMIN_PASSWORD;
-
-      // Проверка для администратора
-      if (email === adminEmail) {
-        if (password === adminPassword) {
-          const userInfo = { email, role: 'admin' };
-          localStorage.setItem("userInfo", JSON.stringify(userInfo));
-          localStorage.setItem("token", "admin_token"); // Используйте реальный токен в продакшене
-          localStorage.setItem("isAuthenticated", "true");
-          toast.success("Вход администратора выполнен успешно!");
-          return userInfo;
-        } else {
-          throw new Error("Неверный пароль для администратора");
-        }
-      }
-
-      // Запрос для обычных пользователей
-      console.log('Отправка запроса на:', LOGIN_URL);
       const response = await api.post(LOGIN_URL, loginData);
-      console.log('Ответ сервера:', response.data);
-      const role = determineRole(email);
-      const userInfo = { ...response.data, role };
-      localStorage.setItem("userInfo", JSON.stringify(userInfo));
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("isAuthenticated", "true");
-      toast.success("Вход выполнен успешно!");
-      return userInfo;
+
+      if (response.status === 200 || response.status === 201) {
+        const { email, token } = response.data;
+        const role = determineRole(email);
+        const userInfo = { email, token, role };
+
+        localStorage.setItem("userInfo", JSON.stringify(userInfo));
+        localStorage.setItem("token", token);
+        localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("userRole", role);
+
+        toast.success("Вход выполнен успешно!");
+        return userInfo;
+      } else {
+        throw new Error("Ошибка входа");
+      }
     } catch (error) {
-      console.error('Ошибка при входе:', error);
-      const errorMessage = error.response?.data?.message || error.message || "Не удалось войти";
+      const errorMessage = error.response?.data?.message || "Не удалось войти";
       toast.error("Ошибка входа: " + errorMessage);
       return rejectWithValue(errorMessage);
     }
@@ -88,10 +76,40 @@ export const logoutUser = createAsyncThunk(
       localStorage.removeItem("userInfo");
       localStorage.removeItem("token");
       localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("userRole");
       toast.success("Вы успешно вышли из системы");
     } catch (error) {
-      console.error("Ошибка выхода:", error);
       const errorMessage = error.response?.data?.message || "Не удалось выйти";
+      toast.error(errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+
+export const fetchUsers = createAsyncThunk(
+  "admin/fetchUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await api.get(USER_URL);
+      return data; // Возвращаем массив пользователей
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Не удалось получить пользователей";
+      toast.error(errorMessage);
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const deleteUser = createAsyncThunk(
+  "admin/deleteUser",
+  async (userId, { rejectWithValue }) => {
+    try {
+      await api.delete(`${USER_URL}/${userId}`); // Предполагается, что DELETE работает по этому URL
+      toast.success("Пользователь успешно удален!");
+      return userId; // Возвращаем ID удаленного пользователя
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Не удалось удалить пользователя";
       toast.error(errorMessage);
       return rejectWithValue(errorMessage);
     }

@@ -1,125 +1,171 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button, TextField, Typography, Box } from "@mui/material";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import { styled } from "@mui/material/styles";
+import {
+  Button,
+  TextField,
+  Typography,
+  Box,
+  Container,
+  Link,
+} from "@mui/material";
 import { useDispatch } from "react-redux";
 import { registerUser } from "../api/api";
-import Spinner from "../components/Spinner";
-import { useNavigate } from "react-router-dom";
+import Spinner from "../components/Spinner"; 
 
 const SignUp = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
-    reset,
   } = useForm();
-  
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
-  const [submitData, setSubmitData] = useState(null); 
 
-  const onSubmit = (data) => {
-    setSubmitData(data); 
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    const response = await dispatch(registerUser(data));
+    if (registerUser.fulfilled.match(response)) {
+      localStorage.setItem("isAuthenticated", "true");
+      navigate("/");
+    }
+    setIsLoading(false); 
   };
 
-  useEffect(() => {
-    const registerUserAsync = async () => {
-      if (submitData) { 
-        setIsLoading(true);
-        try {
-          await dispatch(registerUser(submitData));
-          reset();
-          navigate("/user");
-        } catch (error) {
-          console.error("Ошибка регистрации:", error);
-        } finally {
-          setIsLoading(false);
-          setSubmitData(null); 
-        }
-      }
-    };
-
-    registerUserAsync();
-  }, [submitData, dispatch, navigate, reset]); 
-
   return (
-    <BackgroundBox>
-      <StyledBox>
-        <Typography component="h1" variant="h4" sx={{ mb: 4, fontWeight: "bold", color: "#333", fontFamily: "Sofadi One, system-ui" }}>
-          Регистрация
+    <PageWrapper>
+      <StyledContainer maxWidth="xs">
+        <Typography component="h1" variant="h4" gutterBottom align="center">
+          Создать аккаунт
         </Typography>
-        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-          <TextField
+        <StyledForm onSubmit={handleSubmit(onSubmit)}>
+          <StyledTextField
             fullWidth
-            margin="normal"
-            label="Электронная почта"
-            {...register("email", { required: "Электронная почта обязательна" })}
+            label="Имя пользователя"
+            variant="outlined"
+            {...register("username", {
+              required: "Имя пользователя обязательно",
+              minLength: {
+                value: 3,
+                message: "Минимум 3 символа",
+              },
+            })}
+            error={!!errors.username}
+            helperText={errors.username?.message}
+          />
+          <StyledTextField
+            fullWidth
+            label="Email"
+            variant="outlined"
+            {...register("email", {
+              required: "Email обязателен",
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: "Неверный формат email",
+              },
+            })}
             error={!!errors.email}
             helperText={errors.email?.message}
           />
-          <TextField
+          <StyledTextField
             fullWidth
-            margin="normal"
-            type="password"
             label="Пароль"
-            {...register("password", { required: "Пароль обязателен" })}
+            type="password"
+            variant="outlined"
+            {...register("password", {
+              required: "Пароль обязателен",
+              minLength: {
+                value: 6,
+                message: "Минимум 6 символов",
+              },
+            })}
             error={!!errors.password}
             helperText={errors.password?.message}
           />
-          <TextField
-            fullWidth
-            margin="normal"
-            type="password"
-            label="Подтвердите пароль"
-            {...register("confirmPassword", {
-              required: "Подтверждение пароля обязательно",
-              validate: (value) => value === watch("password") || "Пароли не совпадают",
-            })}
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword?.message}
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 4, mb: 2, py: 1.5, fontSize: "1.1rem", fontWeight: "bold" }}
-            disabled={isLoading}
-          >
-            {isLoading ? <Spinner /> : "Зарегистрироваться"}
-          </Button>
-        </Box>
-      </StyledBox>
-    </BackgroundBox>
+          <StyledButton type="submit" fullWidth variant="contained" size="large" disabled={isLoading}>
+            {isLoading ? <Spinner isLoading={isLoading}/> : "Зарегистрироваться"}
+          </StyledButton>
+        </StyledForm>
+        <StyledTypography>
+          Уже есть аккаунт?{" "}
+          <Link component={RouterLink} to="/signin" color="#0366d6">
+            Войти
+          </Link>
+        </StyledTypography>
+      </StyledContainer>
+    </PageWrapper>
   );
 };
 
 export default SignUp;
 
-const BackgroundBox = styled(Box)(() => ({
-  minHeight: "100vh",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
+const PageWrapper = styled(Box)(({ theme }) => ({
   backgroundImage: "url('https://github.com/github20243/anime-web-site-nurs/blob/master/src/assets/img/ai-generated-8750166_1920.jpg?raw=true')",
   backgroundSize: "cover",
   backgroundPosition: "center",
-  backgroundRepeat: "no-repeat",
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: theme.spacing(2),
 }));
 
-const StyledBox = styled(Box)(({ theme }) => ({
+const StyledContainer = styled(Container)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  padding: theme.spacing(3),
+  backgroundColor: "rgba(255, 255, 255, 0.9)",
+  borderRadius: "8px",
+  boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
   width: "100%",
   maxWidth: "400px",
-  margin: "20px",
-  padding: "30px",
-  background: "rgba(255, 255, 255, 0.8)",
-  backdropFilter: "blur(10px)",
-  borderRadius: theme.shape.borderRadius,
-  boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
   [theme.breakpoints.down("sm")]: {
-    margin: "10px",
-    padding: "20px",
+    position: "relative",
+    bottom: "60px",
+    display: "flex",
+    justifyContent: "center",
+    fontFamily: "Sofadi One, system-ui",
   },
+}));
+
+const StyledForm = styled("form")(({ theme }) => ({
+  width: "100%",
+  marginTop: theme.spacing(3),
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "#e1e4e8",
+    },
+    "&:hover fieldset": {
+      borderColor: "#0366d6",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#0366d6",
+    },
+  },
+  "& .MuiInputLabel-root": {
+    color: "#24292e",
+  },
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  marginTop: theme.spacing(2),
+  backgroundColor: "#2ea44f",
+  color: "white",
+  "&:hover": {
+    backgroundColor: "#2c974b",
+  },
+}));
+
+const StyledTypography = styled(Typography)(({ theme }) => ({
+  marginTop: theme.spacing(2),
+  color: "#586069",
+  fontSize: "14px",
+  textAlign: "center",
 }));

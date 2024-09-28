@@ -5,26 +5,35 @@ import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../api/api';
 import { Button, TextField, Typography, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import Spinner from "../components/Spinner";
+import Spinner from "../components/Spinner"; 
 
 const SignIn = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { role, error } = useSelector((state) => state.auth || {});
+  const { error } = useSelector((state) => state.auth || {});
   const [isLoading, setIsLoading] = useState(false);
 
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      await dispatch(loginUser(data)).unwrap();
-      if (role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/user');
-      }
+      const resultAction = await dispatch(loginUser(data)).unwrap();
+      console.log('Успешный вход:', resultAction);
+      
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userRole', resultAction.role);
+      localStorage.setItem('userInfo', JSON.stringify(resultAction));
+      localStorage.setItem('token', resultAction.token);
+      
+      navigate('/user', { replace: true });
     } catch (err) {
       console.error("Ошибка входа:", err);
+      alert("Ошибка входа: " + (error || "Неизвестная ошибка"));
+      
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userInfo');
+      localStorage.removeItem('token');
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +79,7 @@ const SignIn = () => {
             sx={{ mt: 4, mb: 2, py: 1.5, fontSize: "1.1rem", fontWeight: "bold" }}
             disabled={isLoading}
           >
-            {isLoading ? <Spinner /> : "Войти"}
+            {isLoading ? "Загрузка..." : "Войти"}
           </Button>
           <Button
             fullWidth
@@ -82,13 +91,18 @@ const SignIn = () => {
           </Button>
         </Box>
       </StyledBox>
+      {isLoading && (
+        <SpinnerOverlay>
+          <Spinner isLoading={isLoading} />
+        </SpinnerOverlay>
+      )}
     </BackgroundBox>
   );
 };
 
 export default SignIn;
 
-const BackgroundBox = styled(Box)({
+const BackgroundBox = styled(Box)(() => ({
   minHeight: "100vh",
   display: "flex",
   justifyContent: "center",
@@ -97,7 +111,7 @@ const BackgroundBox = styled(Box)({
   backgroundSize: "cover",
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",
-});
+}));
 
 const StyledBox = styled(Box)(({ theme }) => ({
   width: "100%",
@@ -113,3 +127,16 @@ const StyledBox = styled(Box)(({ theme }) => ({
     padding: "20px",
   },
 }));
+
+const SpinnerOverlay = styled("div")({
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100vw",
+  height: "100vh",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  background: "rgba(15, 13, 13, 0.5)", 
+  zIndex: 1000,
+});
