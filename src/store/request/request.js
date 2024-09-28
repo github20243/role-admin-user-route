@@ -4,18 +4,15 @@ import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Function to save todos to local storage
 const saveToLocalStorage = (todos) => {
   localStorage.setItem("todos", JSON.stringify(todos));
 };
 
-// Function to load todos from local storage
 const loadFromLocalStorage = () => {
   const todos = localStorage.getItem("todos");
   return todos ? JSON.parse(todos) : [];
 };
 
-// Initial loading of todos from local storage
 export const loadTodosFromLocalStorage = createAsyncThunk(
   "todo/loadFromLocalStorage",
   async () => {
@@ -45,7 +42,6 @@ export const postRequest = createAsyncThunk(
       dispatch(getRequest());
       toast.success("Задача успешно добавлена");
       
-      // Save the updated todos to local storage
       const updatedTodos = await axios.get(API_URL);
       saveToLocalStorage(updatedTodos.data);
       
@@ -65,7 +61,6 @@ export const deleteRequest = createAsyncThunk(
       dispatch(getRequest());
       toast.success("Задача успешно удалена");
       
-      // Save the updated todos to local storage
       const updatedTodos = await axios.get(API_URL);
       saveToLocalStorage(updatedTodos.data);
       
@@ -86,7 +81,6 @@ export const patchRequest = createAsyncThunk(
       dispatch(getRequest());
       toast.success("Данные успешно изменены");
       
-      // Save the updated todos to local storage
       const updatedTodos = await axios.get(API_URL);
       saveToLocalStorage(updatedTodos.data);
       

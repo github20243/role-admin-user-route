@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { registerUser, loginUser, logoutUser } from "../../api/api"; // Убедитесь, что здесь импортируется ваш настроенный api
+import { registerUser, loginUser, logoutUser } from "../../api/api";
 
 const initialState = {
   isAuthenticated: false,
