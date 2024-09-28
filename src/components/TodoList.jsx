@@ -18,9 +18,11 @@ const TodoList = () => {
 	const [editId, setEditId] = useState(null);
 	const [editText, setEditText] = useState("");
 	const [editUrl, setEditUrl] = useState("");
+	const [isAdding, setIsAdding] = useState(false);
 
 	const deleteFn = (id) => {
-		dispatch(deleteRequest(id));
+		setIsAdding(true);
+		dispatch(deleteRequest(id)).finally(() => setIsAdding(false));
 	};
 
 	const editFn = (id) => {
@@ -34,10 +36,14 @@ const TodoList = () => {
 
 	const saveEdit = () => {
 		if (editId && editText) {
-			dispatch(patchRequest({ id: editId, text: editText, url: editUrl }));
-			setEditId(null);
-			setEditText("");
-			setEditUrl("");
+			setIsAdding(true);
+			dispatch(patchRequest({ id: editId, text: editText, url: editUrl }))
+				.then(() => {
+					setEditId(null);
+					setEditText("");
+					setEditUrl("");
+				})
+				.finally(() => setIsAdding(false));
 		}
 	};
 
@@ -54,130 +60,131 @@ const TodoList = () => {
 	}, [todos]);
 
 	return (
-		<StyledContainer>
-			{isLoading && <Spinner />}
-			{error && (
-				<Typography color="error" align="center">
-					Ошибка: {error}
-				</Typography>
-			)}
-			{!isLoading &&
-				!error &&
-				todos?.map((item) => (
-					<StyledPaper key={item.id} elevation={3}>
-						{editId === item.id ? (
-							<StyledEditForm>
-								<TextField
-									variant="outlined"
-									value={editText}
-									onChange={(e) => setEditText(e.target.value)}
-									label="Редактировать текст"
-									fullWidth
-								/>
-								<TextField
-									variant="outlined"
-									value={editUrl}
-									type="url"
-									onChange={(e) => setEditUrl(e.target.value)}
-									label="Редактировать URL"
-									fullWidth
-								/>
-								<StyledButtonBox>
-									<Button
-										onClick={saveEdit}
-										variant="contained"
-										color="primary">
-										Сохранить
-									</Button>
-									<Button
-										onClick={() => setEditId(null)}
+		<>
+			{(isLoading || isAdding) && <Spinner isLoading={isLoading} />}
+			<StyledContainer>
+				{error && (
+					<Typography color="error" align="center">
+						Ошибка: {error}
+					</Typography>
+				)}
+				{!isLoading &&
+					!error &&
+					todos?.map((item) => (
+						<StyledPaper key={item.id} elevation={3}>
+							{editId === item.id ? (
+								<StyledEditForm>
+									<TextField
 										variant="outlined"
-										color="secondary">
-										Отмена
-									</Button>
-								</StyledButtonBox>
-							</StyledEditForm>
-						) : (
-							<StyledTodoItem>
-								<Typography variant="body1" align="center">
-									{item.text}
-								</Typography>
-								{item.url && (
-									<StyledImageBox>
-										<StyledImage src={item.url} alt="" />
-									</StyledImageBox>
-								)}
-								<StyledButtonBox>
-									<Button
+										value={editText}
+										onChange={(e) => setEditText(e.target.value)}
+										label="Редактировать текст"
+										fullWidth
+									/>
+									<TextField
 										variant="outlined"
-										color="error"
-										onClick={() => deleteFn(item.id)}>
-										Удалить
-									</Button>
-									<Button
-										onClick={() => editFn(item.id)}
-										variant="outlined"
-										color="primary">
-										Редактировать
-									</Button>
-								</StyledButtonBox>
-							</StyledTodoItem>
-						)}
-					</StyledPaper>
-				))}
-		</StyledContainer>
+										value={editUrl}
+										type="url"
+										onChange={(e) => setEditUrl(e.target.value)}
+										label="Редактировать URL"
+										fullWidth
+									/>
+									<StyledButtonBox>
+										<Button
+											onClick={saveEdit}
+											variant="contained"
+											color="primary">
+											Сохранить
+										</Button>
+										<Button
+											onClick={() => setEditId(null)}
+											variant="outlined"
+											color="secondary">
+											Отмена
+										</Button>
+									</StyledButtonBox>
+								</StyledEditForm>
+							) : (
+								<StyledTodoItem>
+									<Typography variant="body1" align="center">
+										{item.text}
+									</Typography>
+									{item.url && (
+										<StyledImageBox>
+											<StyledImage src={item.url} alt="" />
+										</StyledImageBox>
+									)}
+									<StyledButtonBox>
+										<Button
+											variant="outlined"
+											color="error"
+											onClick={() => deleteFn(item.id)}>
+											Удалить
+										</Button>
+										<Button
+											onClick={() => editFn(item.id)}
+											variant="outlined"
+											color="primary">
+											Редактировать
+										</Button>
+									</StyledButtonBox>
+								</StyledTodoItem>
+							)}
+						</StyledPaper>
+					))}
+			</StyledContainer>
+		</>
 	);
 };
 
 export default TodoList;
 
-const StyledContainer = styled(Box)`
-	max-width: 600px;
-	margin: 0 auto;
-	padding: 20px;
-`;
+const StyledContainer = styled(Box)(({ theme }) => ({
+	maxWidth: 600,
+	margin: "0 auto",
+	padding: theme.spacing(2.5),
+}))
 
-const StyledPaper = styled(Paper)`
-	margin-bottom: 16px;
-	overflow: hidden;
-	transition: all 0.3s ease;
+const StyledPaper = styled(Paper)(({ theme }) => ({
+	marginBottom: theme.spacing(2),
+	overflow: "hidden",
+	transition: "all 0.3s ease",
+	"&:hover": {
+		boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+	},
+}))
 
-	&:hover {
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-	}
-`;
+const StyledTodoItem = styled(Box)(({ theme }) => ({
+	padding: theme.spacing(2),
+	display: "flex",
+	flexDirection: "column",
+	alignItems: "center",
+}))
 
-const StyledTodoItem = styled(Box)`
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-`;
+const StyledEditForm = styled(Box)(({ theme }) => ({
+	display: "flex",
+	flexDirection: "column",
+	gap: theme.spacing(2),
+	padding: theme.spacing(2),
+}))
 
-const StyledEditForm = styled(Box)`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	padding: 16px;
-`;
+const StyledButtonBox = styled(Box)(({ theme }) => ({
+	display: "flex",
+	justifyContent: "center",
+	gap: theme.spacing(1.5),
+	marginTop: theme.spacing(1.5),
+	width: "100%",
+}))
 
-const StyledButtonBox = styled(Box)`
-	display: flex;
-	justify-content: center;
-	gap: 12px;
-	margin-top: 12px;
-	width: 100%;
-`;
+const StyledImageBox = styled(Box)(({ theme }) => ({
+	display: "flex",
+	justifyContent: "center",
+	width: "100%",
+	marginTop: theme.spacing(1.5),
+}))
 
-const StyledImageBox = styled(Box)`
-	display: flex;
-	justify-content: center;
-	width: 100%;
-	margin-top: 12px;
-`;
-
-const StyledImage = styled("img")`
-	max-width: 100%;
-	height: auto;
-	border-radius: 4px;
-`;
+const StyledImage = styled("img")(({ theme }) => ({
+	maxWidth: "100%",
+	height: "auto",
+	borderRadius: theme.shape.borderRadius,
+}))
