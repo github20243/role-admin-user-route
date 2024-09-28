@@ -8,7 +8,7 @@ import {
 import SignIn from "../pages/SignIn";
 import SignUp from "../pages/SignUp";
 import User from "../pages/User";
-import AdminRoute from "../routes/lib/AdminRoute"; // Подключаем маршруты для админа
+import AdminRoute from "../routes/lib/AdminRoute"; 
 import ProtectedRouter from "../routes/lib/ProtectedRouter";
 
 const Routing = () => {
