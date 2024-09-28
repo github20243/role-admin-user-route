@@ -44,21 +44,21 @@ const TodoForm = () => {
 
 export default TodoForm;
 
-const FormContainer = styled("form")`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  width: 400px;
-  margin: 0 auto;
-  height: 250px;
-  background-color: white;
-  border: 1px solid gray;
-  border-radius: 8px;
-  margin-top: 20px;
-`;
+const FormContainer = styled("form")(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: theme.spacing(2.5), 
+  width: "400px",
+  margin: "0 auto",
+  height: "250px",
+  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.grey[300]}`,
+  borderRadius: theme.shape.borderRadius,
+  marginTop: theme.spacing(2.5), 
+}));
 
-const StyledButton = styled(Button)`
-  padding: 8px 70px;
-`;
+const StyledButton = styled(Button)(({ theme }) => ({
+  padding: theme.spacing(1, 8.75),
+}));
